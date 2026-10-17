@@ -158,7 +158,11 @@
     </main>
 
     <script>
-        const DEFAULT_PROMPT = `Eres el motor experto en programación, presupuestación y clasificación del gasto público en México (Senado de la República / PEF, LGCG, CONAC y COG). Tu objetivo es analizar descripciones y dictaminar con precisión la partida correcta. Umbral de Capitalización 70 UMAs = $8,211.70 MXN (1 UMA = $117.31).`;
+        const DEFAULT_PROMPT = `Eres el motor experto en programación, presupuestación y clasificación del gasto público en México (Senado de la República / PEF, LGCG, CONAC y COG). 
+REGLA CRÍTICA DE CAPITALIZACIÓN (CONAC): El umbral estricto es de 70 UMAs ($8,211.70 MXN). 
+- Si el costo unitario sin IVA es MENOR a 70 UMAs ($8,211.70), el bien NO se capitaliza como activo fijo (Capítulo 5000) y debe clasificarse rigurosamente en el capítulo de gasto corriente que corresponda según su naturaleza (como Capítulo 2000 Materiales y Suministros o partidas específicas de servicios o equipo menor no capitalizable, evitando mandar equipo tecnológico o de video por debajo del umbral a partidas incorrectas de oficina genéricas si existe una partida técnica adecuada, o evaluando correctamente contra 51901/52101 solo si rebasa el umbral).
+- Analiza rigurosamente el costo proporcionado frente al umbral antes de dictaminar.`;
+
         const FORMATO_INDIVIDUAL = `Responde estrictamente con:\n### 📌 Dictamen de Clasificación Presupuestal\n* **Partida Específica Sugerida:** [Código] - [Nombre]\n* **Desglose Jerárquico COG:** ...\n* **🧮 Evaluación del Umbral de 70 UMAs ($8,211.70 MXN):** ...\n* **⚖️ Fundamentación Técnica:** ...`;
         const FORMATO_LOTE = `Analiza la lista y devuelve una tabla Markdown con: | # | Concepto | Costo / Umbral | Capítulo | Partida | Alerta |`;
 
@@ -234,7 +238,7 @@
             const desc = document.getElementById('desc-input').value.trim();
             const costo = document.getElementById('costo-input').value.trim();
             if (!desc) { alert("Escribe la descripción."); return; }
-            await ejecutarLlamadaGemini(DEFAULT_PROMPT + "\n\n" + FORMATO_INDIVIDUAL, `Bien: ${desc}, Costo: ${costo}`);
+            await ejecutarLlamadaGemini(DEFAULT_PROMPT + "\n\n" + FORMATO_INDIVIDUAL, `Bien: ${desc}, Costo unitario sin IVA: ${costo}`);
         }
 
         async function analizarGastoLote() {
@@ -253,7 +257,6 @@
             document.getElementById('estado-carga').classList.remove('hidden');
 
             try {
-                // Actualizado al modelo vigente gemini-3.8-flash
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
